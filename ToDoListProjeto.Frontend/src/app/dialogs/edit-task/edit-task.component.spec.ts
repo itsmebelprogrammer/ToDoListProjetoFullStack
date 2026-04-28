@@ -12,8 +12,10 @@ describe('EditTaskDialogComponent', () => {
     id: 1,
     title: 'Tarefa de Teste',
     description: 'Descrição da tarefa',
-    status: 'Pendente',
-    priority: 'Média'
+    status: 'Pendente' as const,
+    priority: 'Média' as const,
+    userId: 'u1',
+    createdAt: '2024-01-01'
   };
 
   beforeEach(async () => {

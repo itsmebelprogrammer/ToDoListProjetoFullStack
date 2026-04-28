@@ -52,8 +52,11 @@
 
       <mat-divider class="divider"></mat-divider>
 
-      <div *ngIf="isLoading">
-        <p>Carregando tarefas...</p>
+      <div *ngIf="isLoading" class="skeleton-container">
+        <div class="skeleton-item" *ngFor="let i of [1,2,3]">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-subtitle"></div>
+        </div>
       </div>
 
       <div *ngIf="!isLoading && pendingTasks.length > 0">

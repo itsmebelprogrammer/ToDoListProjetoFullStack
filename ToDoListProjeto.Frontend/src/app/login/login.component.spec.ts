@@ -36,15 +36,15 @@ describe('LoginComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize loginData with empty fields', () => {
-    expect(component.loginData.email).toBe('');
-    expect(component.loginData.password).toBe('');
+  it('should initialize form with empty fields', () => {
+    expect(component.form.get('email')?.value).toBe('');
+    expect(component.form.get('password')?.value).toBe('');
   });
 
   describe('login()', () => {
     it('should save token to localStorage on success', () => {
       authServiceSpy.login.and.returnValue(of({ token: 'test-token' }));
-      component.loginData = { email: 'test@test.com', password: 'Teste@123' };
+      component.form.setValue({ email: 'test@test.com', password: 'Teste@123' });
       component.login();
       expect(localStorage.getItem('authToken')).toBe('test-token');
     });
@@ -52,23 +52,23 @@ describe('LoginComponent', () => {
     it('should navigate to /tasks on successful login', () => {
       const navigateSpy = spyOn(router, 'navigate');
       authServiceSpy.login.and.returnValue(of({ token: 'test-token' }));
-      component.loginData = { email: 'test@test.com', password: 'Teste@123' };
+      component.form.setValue({ email: 'test@test.com', password: 'Teste@123' });
       component.login();
       expect(navigateSpy).toHaveBeenCalledWith(['/tasks']);
     });
 
     it('should set errorMessage on failed login', () => {
       authServiceSpy.login.and.returnValue(throwError(() => ({ status: 401 })));
-      component.loginData = { email: 'test@test.com', password: 'wrong' };
+      component.form.setValue({ email: 'test@test.com', password: 'wrong' });
       component.login();
-      expect(component.errorMessage).toBe('Erro no login');
+      expect(component.errorMessage).toBe('Email ou senha inválidos.');
     });
 
     it('should call authService.login with form data', () => {
       authServiceSpy.login.and.returnValue(of({ token: 'token' }));
-      component.loginData = { email: 'user@mail.com', password: 'Pass@1' };
+      component.form.setValue({ email: 'user@mail.com', password: 'Pass@123' });
       component.login();
-      expect(authServiceSpy.login).toHaveBeenCalledWith({ email: 'user@mail.com', password: 'Pass@1' });
+      expect(authServiceSpy.login).toHaveBeenCalledWith({ email: 'user@mail.com', password: 'Pass@123' });
     });
   });
 });

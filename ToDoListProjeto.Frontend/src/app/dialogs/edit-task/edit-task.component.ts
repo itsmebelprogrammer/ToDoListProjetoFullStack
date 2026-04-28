@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { TaskItem } from '../../models/task-item.model';
 
 @Component({
   selector: 'app-edit-task',
@@ -23,22 +24,20 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./edit-task.component.css']
 })
 export class EditTaskDialogComponent {
-  editData: any;
+  editData: TaskItem;
 
   constructor(
     public dialogRef: MatDialogRef<EditTaskDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: { task: TaskItem }
   ) {
- 
     this.editData = { ...data.task };
   }
 
   onCancel(): void {
-    this.dialogRef.close(); 
+    this.dialogRef.close();
   }
 
   onSave(): void {
-
     this.dialogRef.close(this.editData);
   }
 }

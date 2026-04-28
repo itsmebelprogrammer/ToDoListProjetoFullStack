@@ -28,13 +28,13 @@ describe('TaskService', () => {
   describe('getTasks()', () => {
     it('should send GET request to /Tasks and return task list', () => {
       const mockTasks = [
-        { id: 1, title: 'Tarefa 1', status: 'Pendente', priority: 'Média' },
-        { id: 2, title: 'Tarefa 2', status: 'Concluída', priority: 'Alta' }
+        { id: 1, title: 'Tarefa 1', status: 'Pendente', priority: 'Média', userId: 'u1', createdAt: '2024-01-01' },
+        { id: 2, title: 'Tarefa 2', status: 'Concluída', priority: 'Alta', userId: 'u1', createdAt: '2024-01-01' }
       ];
 
       service.getTasks().subscribe(tasks => {
         expect(tasks.length).toBe(2);
-        expect(tasks).toEqual(mockTasks);
+        expect(tasks).toEqual(mockTasks as any);
       });
 
       const req = httpMock.expectOne(apiUrl);
@@ -54,10 +54,10 @@ describe('TaskService', () => {
   describe('createTask()', () => {
     it('should send POST request to /Tasks with task data', () => {
       const newTask = { title: 'Nova Tarefa', status: 'Pendente', priority: 'Alta' };
-      const createdTask = { id: 1, ...newTask };
+      const createdTask = { id: 1, ...newTask, userId: 'u1', createdAt: '2024-01-01' };
 
       service.createTask(newTask).subscribe(task => {
-        expect(task).toEqual(createdTask);
+        expect(task).toEqual(createdTask as any);
       });
 
       const req = httpMock.expectOne(apiUrl);
@@ -110,10 +110,10 @@ describe('TaskService', () => {
   describe('createSmartTask()', () => {
     it('should send POST to /Tasks/smart-add with prompt payload', () => {
       const prompt = 'Reunião urgente amanhã';
-      const mockTask = { id: 10, title: 'Reunião urgente', status: 'Pendente', priority: 'Alta' };
+      const mockTask = { id: 10, title: 'Reunião urgente', status: 'Pendente', priority: 'Alta', userId: 'u1', createdAt: '2024-01-01' };
 
       service.createSmartTask(prompt).subscribe(task => {
-        expect(task).toEqual(mockTask);
+        expect(task).toEqual(mockTask as any);
       });
 
       const req = httpMock.expectOne(`${apiUrl}/smart-add`);

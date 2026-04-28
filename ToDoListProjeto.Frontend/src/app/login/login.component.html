@@ -1,29 +1,30 @@
 <div class="login-container">
-
   <mat-card>
     <mat-card-header>
       <mat-card-title>Login</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-    <form (ngSubmit)="login()" #loginForm="ngForm">
-      <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" name="email" [(ngModel)]="loginData.email" required email #email="ngModel">
-        <mat-error *ngIf="email.errors?.['required']">O email é obrigatório.</mat-error>
-        <mat-error *ngIf="email.errors?.['email']">Formato de email inválido.</mat-error>
-      </mat-form-field>
+      <form [formGroup]="form" (ngSubmit)="login()">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email">
+          <mat-error *ngIf="form.get('email')?.hasError('required')">O email é obrigatório.</mat-error>
+          <mat-error *ngIf="form.get('email')?.hasError('email')">Formato de email inválido.</mat-error>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Senha</mat-label>
-        <input matInput type="password" name="password" [(ngModel)]="loginData.password" required #password="ngModel">
-        <mat-error *ngIf="password.errors?.['required']">A senha é obrigatória.</mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Senha</mat-label>
+          <input matInput type="password" formControlName="password">
+          <mat-error *ngIf="form.get('password')?.hasError('required')">A senha é obrigatória.</mat-error>
+        </mat-form-field>
 
-      <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">Login</button>
-      <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
-      <a mat-button routerLink="/register">Não tem uma conta? Registre-se</a>
-    </form>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="20" style="display:inline-block;margin-right:8px;"></mat-spinner>
+          {{ isLoading ? 'Entrando...' : 'Login' }}
+        </button>
+        <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+        <a mat-button routerLink="/register">Não tem uma conta? Registre-se</a>
+      </form>
     </mat-card-content>
   </mat-card>
-
-</div> 
+</div>

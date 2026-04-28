@@ -5,35 +5,33 @@
     </mat-card-header>
 
     <mat-card-content>
-      <form (ngSubmit)="register()" #registerForm="ngForm">
+      <form [formGroup]="form" (ngSubmit)="register()">
         <mat-form-field appearance="outline">
           <mat-label>Nome</mat-label>
-          <input matInput name="name" [(ngModel)]="registerData.name" required minlength="2" #name="ngModel">
-          <mat-error *ngIf="name.errors?.['required']">O nome é obrigatório.</mat-error>
-          <mat-error *ngIf="name.errors?.['minlength']">O nome deve ter no mínimo 2 caracteres.</mat-error>
+          <input matInput formControlName="name">
+          <mat-error *ngIf="form.get('name')?.hasError('required')">O nome é obrigatório.</mat-error>
+          <mat-error *ngIf="form.get('name')?.hasError('minlength')">O nome deve ter no mínimo 2 caracteres.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
-          <input matInput type="email" name="email" [(ngModel)]="registerData.email" required email #email="ngModel">
-          <mat-error *ngIf="email.errors?.['required']">O email é obrigatório.</mat-error>
-          <mat-error *ngIf="email.errors?.['email']">Formato de email inválido.</mat-error>
+          <input matInput type="email" formControlName="email">
+          <mat-error *ngIf="form.get('email')?.hasError('required')">O email é obrigatório.</mat-error>
+          <mat-error *ngIf="form.get('email')?.hasError('email')">Formato de email inválido.</mat-error>
         </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Senha</mat-label>
-            <input matInput type="password" name="password" 
-                  [(ngModel)]="registerData.password" 
-                  required minlength="8" 
-                  pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
-                  #password="ngModel">
-            
-            <mat-error *ngIf="password.errors?.['required']">A senha é obrigatória.</mat-error>
-            <mat-error *ngIf="password.errors?.['minlength']">A senha deve ter no mínimo 8 caracteres.</mat-error>
-            <mat-error *ngIf="password.errors?.['pattern']">Deve conter maiúscula, minúscula, número e símbolo (&#64;$!%*?&).</mat-error>
-          </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Senha</mat-label>
+          <input matInput type="password" formControlName="password">
+          <mat-error *ngIf="form.get('password')?.hasError('required')">A senha é obrigatória.</mat-error>
+          <mat-error *ngIf="form.get('password')?.hasError('minlength')">A senha deve ter no mínimo 8 caracteres.</mat-error>
+          <mat-error *ngIf="form.get('password')?.hasError('pattern')">Deve conter maiúscula, minúscula, número e símbolo (&#64;$!%*?&amp;).</mat-error>
+        </mat-form-field>
 
-        <button mat-raised-button color="primary" type="submit" [disabled]="registerForm.invalid">Registrar</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="20" style="display:inline-block;margin-right:8px;"></mat-spinner>
+          {{ isLoading ? 'Registrando...' : 'Registrar' }}
+        </button>
         <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
         <a mat-button routerLink="/login">Já tem uma conta? Faça o Login</a>
       </form>

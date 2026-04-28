@@ -54,10 +54,11 @@ describe('AuthService', () => {
   describe('register()', () => {
     it('should POST to /auth/register with registration data', () => {
       const registerData = { name: 'Test User', email: 'test@test.com', password: 'Teste@123' };
-      const mockResponse = { message: 'Usuário registrado com sucesso!' };
+      const mockResponse = { id: '1', name: 'Test User', email: 'test@test.com' };
 
       service.register(registerData).subscribe(response => {
-        expect(response).toEqual(mockResponse);
+        expect(response.id).toBe('1');
+        expect(response.email).toBe('test@test.com');
       });
 
       const req = httpMock.expectOne(`${environment.apiUrl}/auth/register`);

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { LoginRequest } from './models/login-request.model';
 import { RegisterRequest } from './models/register-request.model';
 import { AuthResponse } from './models/auth-response.model';
+import { User } from './models/user.model';
 import { environment } from '../environments/environment';
 
 @Injectable({
@@ -17,8 +18,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, loginData);
   }
 
-  register(registerData: RegisterRequest): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, registerData);
+  register(registerData: RegisterRequest): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/register`, registerData);
   }
 
   logout(): void {

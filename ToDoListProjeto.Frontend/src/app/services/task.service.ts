@@ -2,51 +2,37 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { CreateTaskRequest, TaskItem, UpdateTaskRequest } from '../models/task-item.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TaskService {
-  
-private apiUrl = `${environment.apiUrl}/Tasks`;
+  private apiUrl = `${environment.apiUrl}/Tasks`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  getTasks(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+  getTasks(): Observable<TaskItem[]> {
+    return this.http.get<TaskItem[]>(this.apiUrl);
   }
 
-  createTask(taskData: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, taskData);
+  createTask(taskData: CreateTaskRequest): Observable<TaskItem> {
+    return this.http.post<TaskItem>(this.apiUrl, taskData);
   }
 
-  updateTaskStatus(taskId: number, newStatus: string): Observable<any> {
-    const updatePayload = { status: newStatus };
-    return this.http.put(`${this.apiUrl}/${taskId}`, updatePayload);
-  }
-  /**
-   * ATUALIZA UMA TAREFA COMPLETA
-   * @param taskId O ID da tarefa
-   * @param taskData O objeto com os novos dados da tarefa
-   */
-  updateTask(taskId: number, taskData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${taskId}`, taskData);
-  }
-  /**
-   * EXCLUI UMA TAREFA EXISTENTE
-   * @param taskId O ID da tarefa a ser excluída
-   */
-  deleteTask(taskId: number): Observable<any> {
-    // Envia uma requisição HTTP DELETE para o endpoint específico da tarefa
-    return this.http.delete(`${this.apiUrl}/${taskId}`);
+  updateTask(taskId: number, taskData: UpdateTaskRequest): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${taskId}`, taskData);
   }
 
-  /**
-   * Envia uma frase para o backend para ser processada pela IA.
-   * @param prompt A frase digitada pelo usuário
-   */
-  createSmartTask(prompt: string): Observable<any> {
-    const payload = { prompt: prompt };
-    return this.http.post<any>(`${this.apiUrl}/smart-add`, payload);
+  updateTaskStatus(taskId: number, newStatus: string): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${taskId}`, { status: newStatus });
+  }
+
+  deleteTask(taskId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${taskId}`);
+  }
+
+  createSmartTask(prompt: string): Observable<TaskItem> {
+    return this.http.post<TaskItem>(`${this.apiUrl}/smart-add`, { prompt });
   }
 }

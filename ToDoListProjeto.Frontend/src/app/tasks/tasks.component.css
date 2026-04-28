@@ -84,5 +84,38 @@ mat-card {
 }
 
 .toolbar-spacer {
-  flex: 1 1 auto; /* Isso empurra o botão para a direita */
+  flex: 1 1 auto;
+}
+
+.skeleton-container {
+  padding: 8px 0;
+}
+
+.skeleton-item {
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eeeeee 25%, #dddddd 50%, #eeeeee 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  height: 18px;
+  width: 55%;
+  margin-bottom: 8px;
+}
+
+.skeleton-subtitle {
+  height: 13px;
+  width: 35%;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

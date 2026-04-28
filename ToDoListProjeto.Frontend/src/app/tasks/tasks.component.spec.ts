@@ -7,6 +7,7 @@ import { TasksComponent } from './tasks.component';
 import { TaskService } from '../services/task.service';
 import { AuthService } from '../auth.service';
 import { NotificationService } from '../services/notification.service';
+import { TaskItem } from '../models/task-item.model';
 
 describe('TasksComponent', () => {
   let component: TasksComponent;
@@ -17,10 +18,10 @@ describe('TasksComponent', () => {
   let dialogSpy: jasmine.SpyObj<MatDialog>;
   let router: Router;
 
-  const mockTasks = [
-    { id: 1, title: 'Tarefa Pendente', status: 'Pendente', priority: 'Alta' },
-    { id: 2, title: 'Tarefa Concluída', status: 'Concluída', priority: 'Baixa' },
-    { id: 3, title: 'Em Andamento', status: 'Em Andamento', priority: 'Média' }
+  const baseMockTasks: TaskItem[] = [
+    { id: 1, title: 'Tarefa Pendente', status: 'Pendente', priority: 'Alta', userId: 'u1', createdAt: '2024-01-01' },
+    { id: 2, title: 'Tarefa Concluída', status: 'Concluída', priority: 'Baixa', userId: 'u1', createdAt: '2024-01-01' },
+    { id: 3, title: 'Em Andamento', status: 'Em Andamento', priority: 'Média', userId: 'u1', createdAt: '2024-01-01' }
   ];
 
   beforeEach(async () => {
@@ -31,7 +32,7 @@ describe('TasksComponent', () => {
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['showSuccess', 'showError']);
     dialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
 
-    taskServiceSpy.getTasks.and.returnValue(of([...mockTasks]));
+    taskServiceSpy.getTasks.and.returnValue(of(baseMockTasks.map(t => ({ ...t }))));
 
     await TestBed.configureTestingModule({
       imports: [TasksComponent, NoopAnimationsModule],
@@ -81,7 +82,7 @@ describe('TasksComponent', () => {
     });
 
     it('should add task to list on success', () => {
-      const created = { id: 4, title: 'Nova Tarefa', status: 'Pendente', priority: 'Média' };
+      const created: TaskItem = { id: 4, title: 'Nova Tarefa', status: 'Pendente', priority: 'Média', userId: 'u1', createdAt: '2024-01-01' };
       taskServiceSpy.createTask.and.returnValue(of(created));
       component.newTask.title = 'Nova Tarefa';
       component.onAddTask();
@@ -90,7 +91,8 @@ describe('TasksComponent', () => {
     });
 
     it('should reset newTask after successful creation', () => {
-      taskServiceSpy.createTask.and.returnValue(of({ id: 4, title: 'X' }));
+      const created: TaskItem = { id: 4, title: 'X', status: 'Pendente', priority: 'Média', userId: 'u1', createdAt: '2024-01-01' };
+      taskServiceSpy.createTask.and.returnValue(of(created));
       component.newTask.title = 'Nova Tarefa';
       component.onAddTask();
       expect(component.newTask.title).toBe('');
@@ -99,7 +101,8 @@ describe('TasksComponent', () => {
     });
 
     it('should show success notification after adding', () => {
-      taskServiceSpy.createTask.and.returnValue(of({ id: 4, title: 'X' }));
+      const created: TaskItem = { id: 4, title: 'X', status: 'Pendente', priority: 'Média', userId: 'u1', createdAt: '2024-01-01' };
+      taskServiceSpy.createTask.and.returnValue(of(created));
       component.newTask.title = 'Nova Tarefa';
       component.onAddTask();
       expect(notificationServiceSpy.showSuccess).toHaveBeenCalledWith('Tarefa adicionada com sucesso!');
@@ -114,7 +117,7 @@ describe('TasksComponent', () => {
     });
 
     it('should add task and clear prompt on success', () => {
-      const smartTask = { id: 5, title: 'Reunião urgente', status: 'Pendente', priority: 'Alta' };
+      const smartTask: TaskItem = { id: 5, title: 'Reunião urgente', status: 'Pendente', priority: 'Alta', userId: 'u1', createdAt: '2024-01-01' };
       taskServiceSpy.createSmartTask.and.returnValue(of(smartTask));
       component.smartTaskPrompt = 'Reunião urgente amanhã';
       component.onAddSmartTask();
@@ -133,30 +136,30 @@ describe('TasksComponent', () => {
 
   describe('toggleTaskStatus()', () => {
     it('should toggle status from Pendente to Concluída', () => {
-      const task = { id: 1, title: 'T', status: 'Pendente' };
-      taskServiceSpy.updateTaskStatus.and.returnValue(of(null));
+      const task = component.tasks[0];
+      taskServiceSpy.updateTaskStatus.and.returnValue(of(undefined));
       component.toggleTaskStatus(task);
-      expect(taskServiceSpy.updateTaskStatus).toHaveBeenCalledWith(1, 'Concluída');
+      expect(taskServiceSpy.updateTaskStatus).toHaveBeenCalledWith(task.id, 'Concluída');
       expect(task.status).toBe('Concluída');
     });
 
     it('should toggle status from Concluída to Pendente', () => {
-      const task = { id: 2, title: 'T', status: 'Concluída' };
-      taskServiceSpy.updateTaskStatus.and.returnValue(of(null));
+      const task = component.tasks[1];
+      taskServiceSpy.updateTaskStatus.and.returnValue(of(undefined));
       component.toggleTaskStatus(task);
-      expect(taskServiceSpy.updateTaskStatus).toHaveBeenCalledWith(2, 'Pendente');
+      expect(taskServiceSpy.updateTaskStatus).toHaveBeenCalledWith(task.id, 'Pendente');
       expect(task.status).toBe('Pendente');
     });
 
     it('should show success notification after toggle', () => {
-      const task = { id: 1, title: 'T', status: 'Pendente' };
-      taskServiceSpy.updateTaskStatus.and.returnValue(of(null));
+      const task = component.tasks[0];
+      taskServiceSpy.updateTaskStatus.and.returnValue(of(undefined));
       component.toggleTaskStatus(task);
       expect(notificationServiceSpy.showSuccess).toHaveBeenCalledWith('Status da tarefa atualizado!');
     });
 
     it('should show error notification on failure', () => {
-      const task = { id: 1, title: 'T', status: 'Pendente' };
+      const task = component.tasks[0];
       taskServiceSpy.updateTaskStatus.and.returnValue(throwError(() => new Error('err')));
       component.toggleTaskStatus(task);
       expect(notificationServiceSpy.showError).toHaveBeenCalledWith('Falha ao atualizar status.');
@@ -166,7 +169,7 @@ describe('TasksComponent', () => {
   describe('onDeleteTask()', () => {
     it('should call deleteTask and remove from list when confirmed', () => {
       dialogSpy.open.and.returnValue({ afterClosed: () => of(true) } as any);
-      taskServiceSpy.deleteTask.and.returnValue(of(null));
+      taskServiceSpy.deleteTask.and.returnValue(of(undefined));
       const initialLength = component.tasks.length;
       component.onDeleteTask(1, 0);
       expect(taskServiceSpy.deleteTask).toHaveBeenCalledWith(1);
