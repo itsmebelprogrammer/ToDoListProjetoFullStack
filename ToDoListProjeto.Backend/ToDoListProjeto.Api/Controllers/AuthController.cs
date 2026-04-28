@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using ToDoListProjeto.Api.Models;
 using ToDoListProjeto.Api.Services;
 
@@ -19,20 +19,19 @@ public class AuthController : ControllerBase
     {
         var user = await _authService.Register(model);
         if (user == null)
-        {
             return BadRequest(new { message = "Email já cadastrado." });
-        }
+
         return Ok(new { message = "Usuário registrado com sucesso!" });
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("login")]
     public async Task<IActionResult> Login(UserLoginModel model)
     {
         var response = await _authService.Login(model);
         if (response == null)
-        {
             return Unauthorized(new { message = "Credenciais inválidas." });
-        }
+
         return Ok(response);
     }
 }

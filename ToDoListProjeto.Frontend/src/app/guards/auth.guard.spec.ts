@@ -1,21 +1,50 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { authGuard } from './auth.guard';
 
-export const authGuard: CanActivateFn = (route, state) => {
-  // Injetamos o Router para poder redirecionar o usuário
-  const router = inject(Router);
+describe('authGuard', () => {
+  let router: Router;
 
-  // Verificamos se o token de autenticação existe no localStorage
-  const token = localStorage.getItem('authToken');
+  const mockRoute = {} as ActivatedRouteSnapshot;
+  const mockState = { url: '/tasks' } as RouterStateSnapshot;
 
-  if (token) {
-    // Se o token existe, o usuário está autenticado. Permita o acesso.
-    return true;
-  } else {
-    // Se não há token, o usuário não está autenticado.
-    // Redirecione para a página de login.
-    router.navigate(['/login']);
-    // Bloqueie o acesso à rota original.
-    return false;
-  }
-};
+  const runGuard = () =>
+    TestBed.runInInjectionContext(() => authGuard(mockRoute, mockState));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideRouter([])]
+    });
+    router = TestBed.inject(Router);
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it('should allow access when token exists in localStorage', () => {
+    localStorage.setItem('authToken', 'valid-token');
+    const result = runGuard();
+    expect(result).toBe(true);
+  });
+
+  it('should deny access when no token exists', () => {
+    const result = runGuard();
+    expect(result).toBe(false);
+  });
+
+  it('should redirect to /login when no token exists', () => {
+    const navigateSpy = spyOn(router, 'navigate');
+    runGuard();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('should not redirect when token exists', () => {
+    localStorage.setItem('authToken', 'valid-token');
+    const navigateSpy = spyOn(router, 'navigate');
+    runGuard();
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
+});
