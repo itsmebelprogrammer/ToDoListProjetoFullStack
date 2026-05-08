@@ -56,19 +56,19 @@ public class AuthControllerTests : IDisposable
         var result = await _controller.Register(model) as OkObjectResult;
 
         Assert.NotNull(result);
-        var body = result!.Value as dynamic;
-        Assert.NotNull(body);
+        Assert.NotNull(result!.Value);
     }
 
     [Fact]
-    public async Task Register_WithDuplicateEmail_Returns400BadRequest()
+    public async Task Register_WithDuplicateEmail_Returns409Conflict()
     {
         var model = new UserRegisterModel { Name = "Test", Email = "dup@mail.com", Password = "Valid@123" };
         await _controller.Register(model);
 
         var result = await _controller.Register(model);
 
-        Assert.IsType<BadRequestObjectResult>(result);
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(409, objectResult.StatusCode);
     }
 
     // ─── Login ───────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ public class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_WithValidCredentials_ReturnsToken()
+    public async Task Login_WithValidCredentials_ReturnsTokenAndRefreshToken()
     {
         var register = new UserRegisterModel { Name = "Token", Email = "token@mail.com", Password = "Token@123" };
         await _authService.Register(register);
@@ -98,6 +98,7 @@ public class AuthControllerTests : IDisposable
         var response = result!.Value as AuthResponseModel;
         Assert.NotNull(response);
         Assert.NotEmpty(response!.Token);
+        Assert.NotEmpty(response.RefreshToken);
     }
 
     [Fact]
@@ -109,7 +110,8 @@ public class AuthControllerTests : IDisposable
         var login = new UserLoginModel { Email = "auth@mail.com", Password = "Wrong@456" };
         var result = await _controller.Login(login);
 
-        Assert.IsType<UnauthorizedObjectResult>(result);
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(401, objectResult.StatusCode);
     }
 
     [Fact]
@@ -119,6 +121,53 @@ public class AuthControllerTests : IDisposable
 
         var result = await _controller.Login(login);
 
-        Assert.IsType<UnauthorizedObjectResult>(result);
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(401, objectResult.StatusCode);
+    }
+
+    // ─── Refresh ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Refresh_WithValidToken_Returns200AndNewTokens()
+    {
+        var register = new UserRegisterModel { Name = "Refresh", Email = "refresh@mail.com", Password = "Valid@123" };
+        await _authService.Register(register);
+
+        var loginResult = await _controller.Login(new UserLoginModel { Email = "refresh@mail.com", Password = "Valid@123" }) as OkObjectResult;
+        var loginResponse = loginResult!.Value as AuthResponseModel;
+
+        var result = await _controller.Refresh(new RefreshTokenModel { RefreshToken = loginResponse!.RefreshToken });
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<AuthResponseModel>(okResult.Value);
+        Assert.NotEmpty(response.Token);
+        Assert.NotEmpty(response.RefreshToken);
+        Assert.NotEqual(loginResponse.RefreshToken, response.RefreshToken);
+    }
+
+    [Fact]
+    public async Task Refresh_WithInvalidToken_Returns401Unauthorized()
+    {
+        var result = await _controller.Refresh(new RefreshTokenModel { RefreshToken = "invalid-token" });
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(401, objectResult.StatusCode);
+    }
+
+    [Fact]
+    public async Task Refresh_WithRevokedToken_Returns401Unauthorized()
+    {
+        var register = new UserRegisterModel { Name = "Revoke", Email = "revoke@mail.com", Password = "Valid@123" };
+        await _authService.Register(register);
+
+        var loginResult = await _controller.Login(new UserLoginModel { Email = "revoke@mail.com", Password = "Valid@123" }) as OkObjectResult;
+        var loginResponse = loginResult!.Value as AuthResponseModel;
+
+        await _controller.Refresh(new RefreshTokenModel { RefreshToken = loginResponse!.RefreshToken });
+
+        var result = await _controller.Refresh(new RefreshTokenModel { RefreshToken = loginResponse.RefreshToken });
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(401, objectResult.StatusCode);
     }
 }

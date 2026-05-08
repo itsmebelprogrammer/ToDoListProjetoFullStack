@@ -21,7 +21,7 @@ public class AIService
 
     public async Task<TaskCreateModel?> ParseTaskFromPrompt(string userPrompt)
     {
-        var apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_apiKey}";
+        var apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={_apiKey}";
 
         var prompt = $@"
             Você é um assistente especialista em analisar solicitações e extrair informações para tarefas.

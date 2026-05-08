@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using ToDoListProjeto.Api.Data;
 using ToDoListProjeto.Api.Models;
@@ -30,7 +31,15 @@ public class AuthService
         if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
             return null;
 
-        return new AuthResponseModel { Token = GenerateJwtToken(user) };
+        var refreshToken = CreateRefreshToken(user.Id);
+        _dbContext.RefreshTokens.Add(refreshToken);
+        await _dbContext.SaveChangesAsync();
+
+        return new AuthResponseModel
+        {
+            Token = GenerateJwtToken(user),
+            RefreshToken = refreshToken.Token
+        };
     }
 
     public async Task<User?> Register(UserRegisterModel model)
@@ -50,6 +59,37 @@ public class AuthService
         await _dbContext.SaveChangesAsync();
         return newUser;
     }
+
+    public async Task<AuthResponseModel?> Refresh(string refreshToken)
+    {
+        var token = await _dbContext.RefreshTokens
+            .Include(t => t.User)
+            .SingleOrDefaultAsync(t =>
+                t.Token == refreshToken &&
+                !t.IsRevoked &&
+                t.ExpiresAt > DateTime.UtcNow);
+
+        if (token == null) return null;
+
+        token.IsRevoked = true;
+        var newRefreshToken = CreateRefreshToken(token.UserId);
+        _dbContext.RefreshTokens.Add(newRefreshToken);
+        await _dbContext.SaveChangesAsync();
+
+        return new AuthResponseModel
+        {
+            Token = GenerateJwtToken(token.User),
+            RefreshToken = newRefreshToken.Token
+        };
+    }
+
+    private RefreshToken CreateRefreshToken(string userId) => new()
+    {
+        Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+        UserId = userId,
+        CreatedAt = DateTime.UtcNow,
+        ExpiresAt = DateTime.UtcNow.AddDays(7)
+    };
 
     private string GenerateJwtToken(User user)
     {

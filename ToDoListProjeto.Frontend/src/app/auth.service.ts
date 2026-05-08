@@ -22,7 +22,12 @@ export class AuthService {
     return this.http.post<User>(`${this.apiUrl}/register`, registerData);
   }
 
+  refreshToken(token: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, { refreshToken: token });
+  }
+
   logout(): void {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
   }
 }

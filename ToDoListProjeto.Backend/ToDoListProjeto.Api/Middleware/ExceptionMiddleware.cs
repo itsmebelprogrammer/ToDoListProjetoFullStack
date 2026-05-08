@@ -1,35 +1,29 @@
-using System.Net;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ToDoListProjeto.Api.Middleware;
 
-public class ExceptionMiddleware
+public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionMiddleware> _logger;
-
-    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await _next(context);
+            await next(context);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro não tratado: {Method} {Path}",
+            logger.LogError(ex, "Erro não tratado: {Method} {Path}",
                 context.Request.Method, context.Request.Path);
 
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/problem+json";
 
-            await context.Response.WriteAsJsonAsync(new
+            await context.Response.WriteAsJsonAsync(new ProblemDetails
             {
-                message = "Ocorreu um erro interno. Tente novamente mais tarde."
+                Status = 500,
+                Title = "Erro interno do servidor.",
+                Detail = "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+                Instance = context.Request.Path
             });
         }
     }

@@ -44,10 +44,10 @@ describe('AuthService', () => {
       const loginData = { email: 'user@test.com', password: 'Pass@123' };
 
       service.login(loginData).subscribe(response => {
-        expect(response).toEqual({ token: 'returned-token' });
+        expect(response).toEqual({ token: 'returned-token', refreshToken: 'returned-refresh' });
       });
 
-      httpMock.expectOne(`${environment.apiUrl}/auth/login`).flush({ token: 'returned-token' });
+      httpMock.expectOne(`${environment.apiUrl}/auth/login`).flush({ token: 'returned-token', refreshToken: 'returned-refresh' });
     });
   });
 

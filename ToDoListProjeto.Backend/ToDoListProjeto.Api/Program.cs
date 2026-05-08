@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Threading.RateLimiting;
 using Serilog;
@@ -31,7 +32,43 @@ try
     // ─── Serviços ─────────────────────────────────────────────────────────────
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddProblemDetails();
+
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "ToDoList API",
+            Version = "v1",
+            Description = "API REST para gerenciamento de tarefas com autenticação JWT e IA."
+        });
+
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Insira o token JWT. Após o login, copie o campo 'token' e cole aqui."
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    });
+
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<AIService>();
     builder.Services.AddHttpClient<AIService>();
@@ -39,7 +76,7 @@ try
     // ─── Health Check ─────────────────────────────────────────────────────────
     builder.Services.AddHealthChecks();
 
-    // ─── Rate Limiting (proteção do login) ────────────────────────────────────
+    // ─── Rate Limiting ────────────────────────────────────────────────────────
     builder.Services.AddRateLimiter(options =>
     {
         options.AddFixedWindowLimiter("login", opt =>
@@ -88,11 +125,16 @@ try
     var app = builder.Build();
 
     app.UseMiddleware<ExceptionMiddleware>();
+    app.UseStatusCodePages();
 
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "ToDoList API v1");
+            c.DisplayRequestDuration();
+        });
     }
 
     app.UseHttpsRedirection();

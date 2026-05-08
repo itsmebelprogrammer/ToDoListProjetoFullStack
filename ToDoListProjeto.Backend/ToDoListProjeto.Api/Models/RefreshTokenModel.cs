@@ -1,7 +1,9 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ToDoListProjeto.Api.Models;
 
-public class AuthResponseModel
+public class RefreshTokenModel
 {
-    public string Token { get; set; } = string.Empty;
+    [Required]
     public string RefreshToken { get; set; } = string.Empty;
 }

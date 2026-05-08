@@ -47,6 +47,7 @@ export class LoginComponent {
     this.authService.login({ email: email!, password: password! }).subscribe({
       next: (response) => {
         localStorage.setItem('authToken', response.token);
+        localStorage.setItem('refreshToken', response.refreshToken);
         this.router.navigate(['/tasks']);
       },
       error: () => {

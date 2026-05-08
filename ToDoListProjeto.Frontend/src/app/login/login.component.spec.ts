@@ -42,16 +42,17 @@ describe('LoginComponent', () => {
   });
 
   describe('login()', () => {
-    it('should save token to localStorage on success', () => {
-      authServiceSpy.login.and.returnValue(of({ token: 'test-token' }));
+    it('should save token and refreshToken to localStorage on success', () => {
+      authServiceSpy.login.and.returnValue(of({ token: 'test-token', refreshToken: 'test-refresh' }));
       component.form.setValue({ email: 'test@test.com', password: 'Teste@123' });
       component.login();
       expect(localStorage.getItem('authToken')).toBe('test-token');
+      expect(localStorage.getItem('refreshToken')).toBe('test-refresh');
     });
 
     it('should navigate to /tasks on successful login', () => {
       const navigateSpy = spyOn(router, 'navigate');
-      authServiceSpy.login.and.returnValue(of({ token: 'test-token' }));
+      authServiceSpy.login.and.returnValue(of({ token: 'test-token', refreshToken: 'test-refresh' }));
       component.form.setValue({ email: 'test@test.com', password: 'Teste@123' });
       component.login();
       expect(navigateSpy).toHaveBeenCalledWith(['/tasks']);
@@ -65,7 +66,7 @@ describe('LoginComponent', () => {
     });
 
     it('should call authService.login with form data', () => {
-      authServiceSpy.login.and.returnValue(of({ token: 'token' }));
+      authServiceSpy.login.and.returnValue(of({ token: 'token', refreshToken: 'refresh' }));
       component.form.setValue({ email: 'user@mail.com', password: 'Pass@123' });
       component.login();
       expect(authServiceSpy.login).toHaveBeenCalledWith({ email: 'user@mail.com', password: 'Pass@123' });
