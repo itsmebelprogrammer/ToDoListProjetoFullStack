@@ -62,7 +62,7 @@
       <div *ngIf="!isLoading && pendingTasks.length > 0">
         <h3>Pendentes</h3>
         <mat-list>
-          <mat-list-item *ngFor="let task of pendingTasks" class="task-item">
+          <mat-list-item *ngFor="let task of pendingTasks; trackBy: trackByTaskId" class="task-item">
             <div class="task-info">
               <div matListItemTitle>{{ task.title }}</div>
               <div matListItemLine>{{ task.description }}</div>
@@ -81,7 +81,7 @@
               <button mat-icon-button (click)="openEditDialog(task)" aria-label="Editar tarefa">
   <mat-icon>edit</mat-icon>
 </button>
-              <button mat-icon-button color="warn" (click)="onDeleteTask(task.id, tasks.indexOf(task))" aria-label="Excluir tarefa">
+              <button mat-icon-button color="warn" (click)="onDeleteTask(task.id)" aria-label="Excluir tarefa">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>
@@ -93,7 +93,7 @@
         <mat-divider class="divider"></mat-divider>
         <h3>Concluídas</h3>
         <mat-list>
-          <mat-list-item *ngFor="let task of completedTasks" class="task-item completed">
+          <mat-list-item *ngFor="let task of completedTasks; trackBy: trackByTaskId" class="task-item completed">
             <div class="task-info">
               <div matListItemTitle>{{ task.title }}</div>
               <div matListItemLine>{{ task.description }}</div>
@@ -109,7 +109,7 @@
                   {{ task.priority }}
                 </mat-chip>
               </mat-chip-listbox>
-              <button mat-icon-button color="warn" (click)="onDeleteTask(task.id, tasks.indexOf(task))" aria-label="Excluir tarefa">
+              <button mat-icon-button color="warn" (click)="onDeleteTask(task.id)" aria-label="Excluir tarefa">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>

@@ -1,0 +1,4 @@
+
+## 2024-05-10 - Angular Change Detection Getter vs Property and O(N) Array Lookups
+**Learning:** In Angular, using getters in templates (e.g., `*ngFor="let task of pendingTasks"` where `pendingTasks` is a getter returning a new array reference via `.filter()`) triggers change detection to continuously re-evaluate the getter and recreate DOM elements, which is a significant performance anti-pattern. Furthermore, using `tasks.indexOf(task)` in template event bindings forces an O(N) lookup on every change detection cycle, creating additional overhead.
+**Action:** Replace template-bound getters that return new array references with explicit properties, and update those properties explicitly only when the underlying data changes. Use `trackBy` in `*ngFor` to prevent unnecessary DOM recreation. Always favor passing primary keys (like `task.id`) and handling array manipulation in the component code instead of calling O(N) array methods directly in Angular templates.
