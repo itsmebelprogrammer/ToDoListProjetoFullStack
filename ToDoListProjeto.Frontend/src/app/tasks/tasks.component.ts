@@ -52,6 +52,8 @@ export class TasksComponent implements OnInit {
     priority: 'Média',
     status: 'Pendente'
   };
+  pendingTasks: TaskItem[] = [];
+  completedTasks: TaskItem[] = [];
 
   private taskService = inject(TaskService);
   private authService = inject(AuthService);
@@ -59,12 +61,9 @@ export class TasksComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private dialog = inject(MatDialog);
 
-  get pendingTasks(): TaskItem[] {
-    return this.tasks.filter(task => task.status !== 'Concluída');
-  }
-
-  get completedTasks(): TaskItem[] {
-    return this.tasks.filter(task => task.status === 'Concluída');
+  private updateTaskLists(): void {
+    this.pendingTasks = this.tasks.filter(task => task.status !== 'Concluída');
+    this.completedTasks = this.tasks.filter(task => task.status === 'Concluída');
   }
 
   ngOnInit(): void {
@@ -76,6 +75,7 @@ export class TasksComponent implements OnInit {
     this.taskService.getTasks().subscribe({
       next: (data) => {
         this.tasks = data;
+        this.updateTaskLists();
         this.isLoading = false;
       },
       error: () => {
@@ -95,7 +95,10 @@ export class TasksComponent implements OnInit {
         this.taskService.updateTask(result.id, result).subscribe({
           next: () => {
             const index = this.tasks.findIndex(t => t.id === result.id);
-            if (index !== -1) this.tasks[index] = result;
+            if (index !== -1) {
+              this.tasks[index] = result;
+              this.updateTaskLists();
+            }
             this.notificationService.showSuccess('Tarefa atualizada com sucesso!');
           },
           error: () => {
@@ -112,6 +115,7 @@ export class TasksComponent implements OnInit {
     this.taskService.createTask(this.newTask).subscribe({
       next: (addedTask) => {
         this.tasks.push(addedTask);
+        this.updateTaskLists();
         this.newTask = { title: '', description: '', priority: 'Média', status: 'Pendente' };
         this.notificationService.showSuccess('Tarefa adicionada com sucesso!');
       },
@@ -125,6 +129,7 @@ export class TasksComponent implements OnInit {
     this.taskService.createSmartTask(this.smartTaskPrompt).subscribe({
       next: (addedTask) => {
         this.tasks.push(addedTask);
+        this.updateTaskLists();
         this.smartTaskPrompt = '';
         this.notificationService.showSuccess('Tarefa inteligente adicionada!');
       },
@@ -140,6 +145,7 @@ export class TasksComponent implements OnInit {
     this.taskService.updateTaskStatus(task.id, newStatus).subscribe({
       next: () => {
         task.status = newStatus;
+        this.updateTaskLists();
         this.notificationService.showSuccess('Status da tarefa atualizado!');
       },
       error: () => {
@@ -148,7 +154,7 @@ export class TasksComponent implements OnInit {
     });
   }
 
-  onDeleteTask(taskId: number, index: number): void {
+  onDeleteTask(taskId: number): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Confirmar Exclusão',
@@ -160,7 +166,8 @@ export class TasksComponent implements OnInit {
       if (result) {
         this.taskService.deleteTask(taskId).subscribe({
           next: () => {
-            this.tasks.splice(index, 1);
+            this.tasks = this.tasks.filter(t => t.id !== taskId);
+            this.updateTaskLists();
             this.notificationService.showSuccess('Tarefa excluída com sucesso.');
           },
           error: () => {
@@ -169,6 +176,10 @@ export class TasksComponent implements OnInit {
         });
       }
     });
+  }
+
+  trackByTaskId(index: number, task: TaskItem): number {
+    return task.id;
   }
 
   logout(): void {

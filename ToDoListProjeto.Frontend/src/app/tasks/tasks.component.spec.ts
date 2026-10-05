@@ -60,15 +60,19 @@ describe('TasksComponent', () => {
     expect(component.tasks.length).toBe(3);
   });
 
-  describe('pendingTasks getter', () => {
+  describe('pendingTasks property', () => {
     it('should return tasks with status different from Concluída', () => {
+      component.tasks = [...baseMockTasks];
+      component['updateTaskLists']();
       expect(component.pendingTasks.length).toBe(2);
       expect(component.pendingTasks.every(t => t.status !== 'Concluída')).toBeTrue();
     });
   });
 
-  describe('completedTasks getter', () => {
+  describe('completedTasks property', () => {
     it('should return tasks with status equal to Concluída', () => {
+      component.tasks = [...baseMockTasks];
+      component['updateTaskLists']();
       expect(component.completedTasks.length).toBe(1);
       expect(component.completedTasks[0].status).toBe('Concluída');
     });
@@ -171,15 +175,16 @@ describe('TasksComponent', () => {
       dialogSpy.open.and.returnValue({ afterClosed: () => of(true) } as any);
       taskServiceSpy.deleteTask.and.returnValue(of(undefined));
       const initialLength = component.tasks.length;
-      component.onDeleteTask(1, 0);
+      component.onDeleteTask(1);
       expect(taskServiceSpy.deleteTask).toHaveBeenCalledWith(1);
       expect(component.tasks.length).toBe(initialLength - 1);
+      expect(component.tasks.some(t => t.id === 1)).toBeFalse();
       expect(notificationServiceSpy.showSuccess).toHaveBeenCalledWith('Tarefa excluída com sucesso.');
     });
 
     it('should NOT call deleteTask when dialog is dismissed', () => {
       dialogSpy.open.and.returnValue({ afterClosed: () => of(false) } as any);
-      component.onDeleteTask(1, 0);
+      component.onDeleteTask(1);
       expect(taskServiceSpy.deleteTask).not.toHaveBeenCalled();
     });
   });
